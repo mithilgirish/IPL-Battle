@@ -1,8 +1,11 @@
 from django.db import models
 from admin.models import User, Room, Player
 
+import uuid
+
 # Create your models here.
 class Participant(models.Model):
+    uid = models.UUIDField(default=uuid.uuid4, primary_key=True)
     user = models.OneToOneField(to=User, on_delete=models.CASCADE)
     name = models.CharField(max_length=30)
     balance = models.FloatField(default=700000)

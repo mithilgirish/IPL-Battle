@@ -36,7 +36,7 @@ def gen_token(username, password, is_auc=False, is_admin=False):
             'message': 'Incorrect Password! Please try again'
         }
     
-    token = Token.objects.get_or_create(user=user[0])
+    token = Token.objects.get_or_create(user=user[0])[0]
     
     if is_admin: return 200, { 'valid': True, 'token': token.key, }
     return 200, {

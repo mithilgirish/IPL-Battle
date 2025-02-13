@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny
 
 from django.http.response import HttpResponseBadRequest, JsonResponse
 from lib.auth import gen_token
-from utils import get_fields
+from lib.utils import get_fields
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
