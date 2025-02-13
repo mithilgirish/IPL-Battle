@@ -61,13 +61,15 @@ def allocate_player(user: User, participant_id: str, amt: int):
     room = Auctioneer.objects.get(user=user).room
     participant = Participant.objects.get(uid=uuid.UUID(participant_id), room=room)
 
-    if (participant.balance < amt): return {}
+    if (participant.balance < amt): return { 'valid': False, 'message': 'Insufficient funds!' }
+    if is_player_allocated(room): return { 'valid': False, 'message': 'Player already allocated!' }
 
     participant.balance -= amt
     participant.save()
     Team(participant=participant, player=room.curr_player).save()
 
     return {
+        'valid': True,
         'uid': participant_id,
         'balance': participant.balance,
         'player': {
@@ -77,6 +79,11 @@ def allocate_player(user: User, participant_id: str, amt: int):
             'domain': room.player.domain
         }
     }
+
+
+def is_player_allocated(room: Room):
+    return len(Team.objects.filter(participant__room=room, player=room.curr_player)) > 0
+
 
 def get_socket_data(user: User):
     if user.is_admin or user.is_auc: return get_auctioneer_room(user)

@@ -46,9 +46,11 @@ class RoomConsumer(WebsocketConsumer):
 
         elif data['action'] == 'TEAM':
             res = logic.allocate_player(self.user, data['uid'], data['amt'])
-            async_to_sync(self.channel_layer.group_send)(
-                self.room_name, { 'type': 'player_add', 'data': res }
-            )
+            if res['valid']:
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_name, { 'type': 'player_add', 'data': res }
+                )
+            else: self.send(text_data=json.dumps(res))
 
         else:
             self.close(code=400, reason='Invalid action')
