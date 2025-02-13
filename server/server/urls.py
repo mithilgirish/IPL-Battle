@@ -14,9 +14,19 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path
+# from django.contrib import admin
+from django.urls import path, re_path, include
+from admin import consumers
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
+    path('participant/', include('participant.urls')),
+    path('auctioneer/', include('auctioneer.urls')),
+    path('admin/', include('admin.urls'))
 ]
+
+websocket_urlpatterns = [
+    re_path(r'room/(?P<room_uid>\w+)/$', consumers.RoomConsumer.as_asgi())
+
+]
+
