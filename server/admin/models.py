@@ -27,7 +27,7 @@ class User(AbstractBaseUser):
 class Player(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=30)
-    country = models.CharField(max_length=30)
+    domestic = models.BooleanField(default=True)
     score = models.IntegerField()
 
     class DomainChoice(models.TextChoices):

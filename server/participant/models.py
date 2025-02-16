@@ -15,3 +15,4 @@ class Participant(models.Model):
 class Team(models.Model):
     participant = models.ForeignKey(to=Participant, on_delete=models.CASCADE)
     player = models.ForeignKey(to=Player, on_delete=models.CASCADE)
+    price = models.IntegerField()
