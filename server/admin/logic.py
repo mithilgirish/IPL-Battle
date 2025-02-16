@@ -15,7 +15,8 @@ def get_participant_room(user: User):
             'score': team_player.player.score,
             'domain': team_player.player.domain,
             'price': team_player.price
-        } for team_player in Team.objects.filter(participant=participant)]
+        } for team_player in Team.objects.filter(participant=participant)],
+        'curr_player': participant.room.curr_player
     }
 
 
