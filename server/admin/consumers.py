@@ -21,10 +21,7 @@ class RoomConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_add)(self.room_name, self.channel_name)
 
         self.accept()
-        self.send(text_data=json.dumps({
-            'uid': user.uid.hex,
-            **logic.get_room_data(self.user, self.room)
-        }))
+        self.send(text_data=json.dumps(logic.get_room_data(self.user, self.room)))
 
 
     def disconnect(self, code):
@@ -33,7 +30,7 @@ class RoomConsumer(WebsocketConsumer):
 
     def receive(self, text_data=None, bytes_data=None):
         if not (self.user.is_admin or self.user.is_auc):
-            return self.close(reason='Participant can only listen for data')
+            return self.send(text_data=json.dumps({'message': 'Participant can only listen for data'}))
         
         data = None
         data = json.loads(text_data)
@@ -41,7 +38,8 @@ class RoomConsumer(WebsocketConsumer):
         if data['action'] == 'PLAYER':
             res = logic.update_curr_player(self.room, data['pid'])
             async_to_sync(self.channel_layer.group_send)(
-                self.room_name, { 'type': 'player_update', 'data': res }
+                self.room_name, 
+                { 'type': 'player_update', 'data': { 'player_uid': res } }
             )
 
         elif data['action'] == 'TEAM':
@@ -52,19 +50,22 @@ class RoomConsumer(WebsocketConsumer):
                 )
             else: self.send(text_data=json.dumps(res))
 
+        elif data['action'] == 'REVERT':
+            res = logic.remove_entry(self.room, data['entry_id'])
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_name, { 'type': 'player_revert', 'data': res }
+            )
+
         else:
             self.close(reason='Invalid action')
 
 
     def player_update(self, event):
-        self.send(text_data=json.dumps({
-            'type': 'curr_player',
-            **event['data']
-        }))
+        self.send(text_data=json.dumps({ 'type': 'curr_player', **event['data'] }))
 
     
     def player_add(self, event):
-        self.send(text_data=json.dumps({
-            'type': 'team_player',
-            **event['data']
-        }))
+        self.send(text_data=json.dumps({ 'type': 'team_player', **event['data'] }))
+
+    def player_revert(self, event):
+        self.send(text_data=json.dumps({ 'type': 'revert_player', **event['data'] }))

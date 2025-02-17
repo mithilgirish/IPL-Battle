@@ -79,50 +79,43 @@
             "method": "WebSocket",
             "response": {
                 "uid": "User UID",
+                "all_players": [
+                    {
+                        "entry_id": "string", 
+                        "name": "string",
+                        "is_domestic": "boolean",
+                        "score": "number",
+                        "domain": ["BA", "BO", "BR", "WK"],
+                        "price": "number"
+                    }
+                ],
+                "curr_player": "uid of player | null",
 
-                "participant": {
+                "if user is participant": {
                     "name": "string",
                     "balance": "number",
                     "players": [
-                        { 
-                            "name": "string",
-                            "is_domestic": "boolean",
-                            "score": "number",
-                            "domain": ["BA", "BO", "BR", "WK"],
+                        {
+                            "entry_id": "string", 
+                            "player_id": "string",
                             "price": "number"
                         }
-                    ],
-                    "curr_player": {
-                        "uid": "string",
-                        "name": "string",
-                        "is_domestic": "boolean",
-                        "score": "number",
-                        "domain": ["BA", "BO", "BR", "WK"]
-                    }
+                    ]
                 },
 
-                "auctioneer or admin": {
-                    "players": [
-                        {
-                            "uid": "string",
-                            "name": "string",
-                            "is_domestic": "boolean",
-                            "score": "number",
-                            "domain": ["BA", "BO", "BR", "WK"]
-                        }
-                    ],
-                    "curr_player": {
-                        "uid": "string",
-                        "name": "string",
-                        "is_domestic": "boolean",
-                        "score": "number",
-                        "domain": ["BA", "BO", "BR", "WK"]
-                    },
+                "if user is auctioneer or admin": {
                     "participants": [
                         {
                             "uid": "string",
                             "name": "string",
-                            "balance": "number"
+                            "balance": "number",
+                            "players": [
+                                {
+                                    "entry_id": "string",
+                                    "player_id": "string",
+                                    "price": "price"
+                                }
+                            ]
                         }
                     ]
                 }
@@ -142,29 +135,30 @@
                     "action": "TEAM",
                     "uid": "User UID",
                     "amt": "Amount to remove"
+                },
+                "remove allocation": {
+                    "action": "REVERT",
+                    "entry_id": "Entry UID"
                 }
             },
             "response": {
                 "auctioneer or admin": {
                     "current player update": {
-                        "type": "curr_player",
-                        "name": "string",
-                        "score": "number",
-                        "domain": ["BA", "BO", "BR", "WK"],
-                        "is_domestic": "boolean"
+                        "player_uid": "uid of player"
                     },
                     "assign player to team": {
                         "type": "team_player",
                         "valid": "boolean",
-                        "uid": "Team UID",
+                        "uid": "Participant UID",
                         "balance": "number",
-                        "player": {
-                            "name": "string",
-                            "score": "number",
-                            "domain": ["BA", "BO", "BR", "WK"],
-                            "is_domestic": "boolean"
-                        },
-                        "price": "Amount taken"
+                        "entry_id": "Entry UID",
+                        "player": "player uid",
+                        "price": "number"
+                    },
+                    "remove allocation": {
+                        "type": "revert_player",
+                        "entry_id": "Entry UID",
+                        "uid": "Participant UID"
                     }
                 }
             }
