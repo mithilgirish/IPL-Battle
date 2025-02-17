@@ -45,14 +45,20 @@ const Home = () => {
     <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-12">
       <div className="flex-none relative w-full md:w-1/2 flex justify-center md:justify-start">
         <div className="relative">
+          
           <img 
             src="/IPL-Logo.png"
             alt="IPL 2024"
             className="w-56 h-56 md:w-64 md:h-64 object-contain animate-float"
           />
-          <h1 className="absolute left-0 right-0 text-4 xl md:text-5xl font-bold text-white text-center">
-            Battle 5.0
-          </h1>
+                    <h1 className="text-6xl font-extrabold">
+                      <span className="relative inline-block">
+                        <span className="absolute -inset-2 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 blur-lg opacity-5 "></span>
+                        <span className="relative bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 bg-clip-text text-transparent">
+                          Battle 5.0
+                        </span>
+                      </span>
+                    </h1>
         </div>
       </div>
 
