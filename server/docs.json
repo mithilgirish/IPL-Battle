@@ -1,0 +1,173 @@
+{
+    "Instructions": [
+        "1. Each top level key describes the role",
+        "2. If the key / value is descriptive (i.e. space separated) then it is descriptive of the data",
+        "3. If the key / value is technical (e.g. valid, room_uid, etc) then it is the actual response / type of data",
+        "4. If a value is written as an array of elements, then it can be any of the items",
+        "5. If a value is written as an array of object, then it implies the response will be an array of objects with the given keys",
+        "6. If a value is just a 'technical' string, then the value will be returned as it is",
+        "7. 'Payload' refers to the data you need to send. It is not a key name of the request body"
+    ],
+
+
+
+    "participants": {
+        "login": {
+            "url": "/participant/login",
+            "method": "POST",
+            "payload": [
+                "username",
+                "password"
+            ],
+            "response": {
+                "valid": "boolean",
+                "message": "string?",
+                "token": "string",
+                "room_uid": "string"
+            }
+        }
+    },
+    "auctioneer": {
+        "login": {
+            "url": "/auctioneer/login",
+            "method": "POST",
+            "payload": [
+                "username",
+                "password"
+            ],
+            "response": {
+                "valid": "boolean",
+                "message": "string?",
+                "token": "string",
+                "room_uid": "string"
+            }
+        }
+    },
+    "admin": {
+        "login": {
+            "url": "/admin/login",
+            "method": "POST",
+            "payload": {
+                "username": "string",
+                "password": "string"
+            },
+            "response": {
+                "valid": "boolean",
+                "message": "string?",
+                "token": "string"
+            }
+        },
+        "rooms": {
+            "authorized": true,
+            "url": "/admin/rooms",
+            "method": "GET",
+            "response": {
+                "rooms": [
+                    {
+                        "name": "string", 
+                        "uid": "string"
+                    }
+                ]
+            }
+        }
+    },
+
+    "room": {
+        "connect": {
+            "authorized": true,
+            "url": "/room/room-uid/",
+            "method": "WebSocket",
+            "response": {
+                "uid": "User UID",
+
+                "participant": {
+                    "name": "string",
+                    "balance": "number",
+                    "players": [
+                        { 
+                            "name": "string",
+                            "is_domestic": "boolean",
+                            "score": "number",
+                            "domain": ["BA", "BO", "BR", "WK"],
+                            "price": "number"
+                        }
+                    ],
+                    "curr_player": {
+                        "uid": "string",
+                        "name": "string",
+                        "is_domestic": "boolean",
+                        "score": "number",
+                        "domain": ["BA", "BO", "BR", "WK"]
+                    }
+                },
+
+                "auctioneer or admin": {
+                    "players": [
+                        {
+                            "uid": "string",
+                            "name": "string",
+                            "is_domestic": "boolean",
+                            "score": "number",
+                            "domain": ["BA", "BO", "BR", "WK"]
+                        }
+                    ],
+                    "curr_player": {
+                        "uid": "string",
+                        "name": "string",
+                        "is_domestic": "boolean",
+                        "score": "number",
+                        "domain": ["BA", "BO", "BR", "WK"]
+                    },
+                    "participants": [
+                        {
+                            "uid": "string",
+                            "name": "string",
+                            "balance": "number"
+                        }
+                    ]
+                }
+            }
+        },
+
+        "receive on server": {
+            "authorized": true,
+            "url": "/room/room-uid/",
+            "method": "WebSocket",
+            "payload": {
+                "current player update": {
+                    "action": "PLAYER",
+                    "pid": "Player id"
+                },
+                "assign player to team": {
+                    "action": "TEAM",
+                    "uid": "User UID",
+                    "amt": "Amount to remove"
+                }
+            },
+            "response": {
+                "auctioneer or admin": {
+                    "current player update": {
+                        "type": "curr_player",
+                        "name": "string",
+                        "score": "number",
+                        "domain": ["BA", "BO", "BR", "WK"],
+                        "is_domestic": "boolean"
+                    },
+                    "assign player to team": {
+                        "type": "team_player",
+                        "valid": "boolean",
+                        "uid": "Team UID",
+                        "balance": "number",
+                        "player": {
+                            "name": "string",
+                            "score": "number",
+                            "domain": ["BA", "BO", "BR", "WK"],
+                            "is_domestic": "boolean"
+                        },
+                        "price": "Amount taken"
+                    }
+                }
+            }
+        }
+    }
+}

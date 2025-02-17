@@ -11,10 +11,12 @@ def get_participant_room(user: User):
         'balance': participant.balance,
         'players': [{
             'name': team_player.player.name,
-            'country': team_player.player.country,
+            'is_domestic': team_player.player.domestic,
             'score': team_player.player.score,
-            'domain': team_player.player.domain
-        } for team_player in Team.objects.filter(participant=participant)]
+            'domain': team_player.player.domain,
+            'price': team_player.price
+        } for team_player in Team.objects.filter(participant=participant)],
+        'curr_player': participant.room.curr_player
     }
 
 
@@ -23,14 +25,14 @@ def get_auctioneer_room(room: Room):
         'players': [{
             'uid': player.uid.hex,
             'name': player.name,
-            'country': player.country,
+            'is_domestic': player.domestic,
             'score': player.score,
             'domain': player.domain
         } for player in Player.objects.all()],
         'curr_player': {
             'uid': room.curr_player.uid.hex,
             'name': room.curr_player.name,
-            'country': room.curr_player.country,
+            'is_domestic': room.curr_player.domestic,
             'score': room.curr_player.score,
             'domain': room.curr_player.domain
         } if room.curr_player else None,
@@ -49,7 +51,7 @@ def update_curr_player(room: Room, player_uid: str):
 
     return {
         'name': player.name,
-        'country': player.country,
+        'is_domestic': player.domestic,
         'score': player.score,
         'domain': player.domain
     }
@@ -71,10 +73,11 @@ def allocate_player(room: Room, participant_id: str, amt: int):
         'balance': participant.balance,
         'player': {
             'name': room.curr_player.name,
-            'country': room.curr_player.country,
+            'is_domestic': room.curr_player.domestic,
             'score': room.curr_player.score,
-            'domain': room.curr_player.domain
-        }
+            'domain': room.curr_player.domain,
+        },
+        'price': amt
     }
 
 

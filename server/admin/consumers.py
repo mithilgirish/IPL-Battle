@@ -37,10 +37,8 @@ class RoomConsumer(WebsocketConsumer):
         
         data = None
         data = json.loads(text_data)
-        # except Exception:
-        #     return self.close(reason="Invalid JSON Data")
         
-        if data['action'] == 'IMG':
+        if data['action'] == 'PLAYER':
             res = logic.update_curr_player(self.room, data['pid'])
             async_to_sync(self.channel_layer.group_send)(
                 self.room_name, { 'type': 'player_update', 'data': res }
