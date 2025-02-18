@@ -38,7 +38,7 @@ def read_csv():
         reader = csv.DictReader(f)
         for row in reader:
             Player(
-                name=row['name'],
+                name=row['\ufeffname'],
                 domestic=row['domestic'] == 'yes',
                 score=int(row['base_price']),
                 domain=choices[row['domain'].strip()],
