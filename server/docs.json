@@ -15,10 +15,10 @@
         "login": {
             "url": "/participant/login",
             "method": "POST",
-            "payload": [
-                "username",
-                "password"
-            ],
+            "payload": {
+                "username": "string",
+                "password": "string"
+            },
             "response": {
                 "valid": "boolean",
                 "message": "string?",
@@ -31,10 +31,10 @@
         "login": {
             "url": "/auctioneer/login",
             "method": "POST",
-            "payload": [
-                "username",
-                "password"
-            ],
+            "payload": {
+                "username": "string",
+                "password": "string"
+            },
             "response": {
                 "valid": "boolean",
                 "message": "string?",
@@ -79,52 +79,45 @@
             "method": "WebSocket",
             "response": {
                 "uid": "User UID",
+                "all_players": [{
+                    "object keys": "entry_id",
+                    "object values": {
+                        "name": "string",
+                        "is_domestic": "boolean",
+                        "score": "number",
+                        "domain": ["BA", "BO", "AR", "WK"],
+                        "price": "number"
+                    }
+                }],
+                "curr_player": "uid of player | null",
 
-                "participant": {
+                "if user is participant": {
                     "name": "string",
                     "balance": "number",
-                    "players": [
-                        { 
-                            "name": "string",
-                            "is_domestic": "boolean",
-                            "score": "number",
-                            "domain": ["BA", "BO", "BR", "WK"],
+                    "players": [{
+                        "object keys": "entry_id",
+                        "object values": {
+                            "player_id": "string",
                             "price": "number"
                         }
-                    ],
-                    "curr_player": {
-                        "uid": "string",
-                        "name": "string",
-                        "is_domestic": "boolean",
-                        "score": "number",
-                        "domain": ["BA", "BO", "BR", "WK"]
-                    }
+                    }]
                 },
 
-                "auctioneer or admin": {
-                    "players": [
-                        {
-                            "uid": "string",
+                "if user is auctioneer or admin": {
+                    "participants": [{
+                        "object keys": "user uid",
+                        "object values": {
                             "name": "string",
-                            "is_domestic": "boolean",
-                            "score": "number",
-                            "domain": ["BA", "BO", "BR", "WK"]
+                            "balance": "number",
+                            "players": [{
+                                "object keys": "entry_id",
+                                "object values": {
+                                    "player_id": "string",
+                                    "price": "number"
+                                }
+                            }]
                         }
-                    ],
-                    "curr_player": {
-                        "uid": "string",
-                        "name": "string",
-                        "is_domestic": "boolean",
-                        "score": "number",
-                        "domain": ["BA", "BO", "BR", "WK"]
-                    },
-                    "participants": [
-                        {
-                            "uid": "string",
-                            "name": "string",
-                            "balance": "number"
-                        }
-                    ]
+                    }]
                 }
             }
         },
@@ -134,38 +127,40 @@
             "url": "/room/room-uid/",
             "method": "WebSocket",
             "payload": {
-                "current player update": {
-                    "action": "PLAYER",
-                    "pid": "Player id"
-                },
-                "assign player to team": {
-                    "action": "TEAM",
-                    "uid": "User UID",
-                    "amt": "Amount to remove"
+                "auctioneer or admin": {
+                    "current player update": {
+                        "action": "PLAYER",
+                        "pid": "Player id"
+                    },
+                    "assign player to team": {
+                        "action": "TEAM",
+                        "uid": "User UID",
+                        "amt": "Amount to remove"
+                    },
+                    "remove allocation": {
+                        "action": "REVERT",
+                        "entry_id": "Entry UID"
+                    }
                 }
             },
             "response": {
-                "auctioneer or admin": {
-                    "current player update": {
-                        "type": "curr_player",
-                        "name": "string",
-                        "score": "number",
-                        "domain": ["BA", "BO", "BR", "WK"],
-                        "is_domestic": "boolean"
-                    },
-                    "assign player to team": {
-                        "type": "team_player",
-                        "valid": "boolean",
-                        "uid": "Team UID",
-                        "balance": "number",
-                        "player": {
-                            "name": "string",
-                            "score": "number",
-                            "domain": ["BA", "BO", "BR", "WK"],
-                            "is_domestic": "boolean"
-                        },
-                        "price": "Amount taken"
-                    }
+                "current player update": {
+                    "type": "curr_player",
+                    "player_uid": "uid of player"
+                },
+                "assign player to team": {
+                    "type": "team_player",
+                    "valid": "boolean",
+                    "uid": "Participant UID",
+                    "balance": "number",
+                    "entry_id": "Entry UID",
+                    "player": "player uid",
+                    "price": "number"
+                },
+                "remove allocation": {
+                    "type": "revert_player",
+                    "entry_id": "Entry UID",
+                    "uid": "Participant UID"
                 }
             }
         }

@@ -16,14 +16,21 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3n#e!)qr*52ryqfl-59q%55m8=+d4f^3!$w#%rpf^_%vhevi=h'
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv('./.env' if DEBUG else None)
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ['SECURITY_KEY']
 
 ALLOWED_HOSTS = ['*']
 
@@ -96,9 +103,17 @@ TEMPLATES = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # },
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ['DATABASE_NAME'],
+        "USER": os.environ['DATABASE_USER'],
+        "PASSWORD": os.environ['DATABASE_PASSWORD'],
+        "HOST": os.environ['DATABASE_HOST'],
+        "PORT": "5432"
     }
 }
 

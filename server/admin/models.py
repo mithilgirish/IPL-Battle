@@ -37,6 +37,7 @@ class Player(models.Model):
         WICKET_KEEPER = 'WK'
 
     domain = models.CharField(max_length=2, choices=DomainChoice)
+    base_price = models.IntegerField()
 
 
 class Room(models.Model):
