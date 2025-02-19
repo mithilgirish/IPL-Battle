@@ -1,27 +1,29 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, User, Lock, Gamepad2 } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, Gamepad2, Hammer, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const Login = () => {
+
+const LoginOC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState('auctioneer');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    console.log(username, password);
+    console.log(username, password, role);
 
     try {
-      // Since only "participant" role is used, the URL is fixed.
-      const url = `https://ipl-battle.onrender.com/participant/login/`;
+      const url = `https://ipl-battle.onrender.com/${role}/login/`;
       console.log(url);
       const response = await fetch(url, {
         method: 'POST',
-        mode: 'cors', // Enable CORS mode
+        mode: 'cors',  
         headers: {
           'Content-Type': 'application/json',
         },
@@ -41,9 +43,8 @@ const Login = () => {
       }
 
       console.log('Login successful:', data);
-      navigate(`/dashboard?role=participant`);
-
-
+       navigate(`/dashboard?role=${role}`);
+      
     } catch (error) {
       console.error('Login error:', error);
       setError(error.message);
@@ -51,7 +52,6 @@ const Login = () => {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0c1629] relative overflow-hidden p-4">
@@ -70,13 +70,30 @@ const Login = () => {
           </div>
           <CardTitle className="text-4xl font-bold text-center tracking-tighter">
             <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-              Participant Login
+              {role.charAt(0).toUpperCase() + role.slice(1)} Login
             </span>
           </CardTitle>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="flex gap-2 mb-6">
+              {['auctioneer', 'admin'].map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={`flex-1 py-2 text-sm rounded-lg transition-colors ${
+                    role === r
+                      ? 'bg-blue-600/90 text-white'
+                      : 'bg-[#0c1629]/70 text-blue-300/60 hover:bg-blue-900/30'
+                  }`}
+                >
+                  {r.charAt(0).toUpperCase() + r.slice(1)}
+                </button>
+              ))}
+            </div>
+
             <div className="space-y-5">
               <div className="relative group">
                 <User className="absolute left-3 top-3 h-5 w-5 text-blue-300/60 transition-colors group-focus-within:text-blue-400 z-10" />
@@ -160,4 +177,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginOC;
