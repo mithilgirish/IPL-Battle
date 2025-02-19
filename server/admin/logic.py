@@ -9,26 +9,31 @@ def get_participant_room(user: User):
     return {
         'name': participant.name,
         'balance': participant.balance,
-        'players': [{
-            'entry_id': team_player.uid.hex,
-            'player_id': team_player.player.uid.hex,
-            'price': team_player.price
-        } for team_player in Team.objects.filter(participant=participant)],
+        'players': dict([
+            (team_player.uid.hex, {
+                'player_id': team_player.player.uid.hex,
+                'price': team_player.price
+            }) 
+            for team_player in Team.objects.filter(participant=participant)
+        ]),
     }
 
 
 def get_auctioneer_room(room: Room):
     return {
-        'participants': [{
-            'uid': participant.user.uid.hex,
-            'name': participant.name,
-            'balance': participant.balance,
-            'players': [{
-                'entry_id': team_player.uid.hex,
-                'player_id': team_player.player.uid.hex,
-                'price': team_player.price
-            } for team_player in Team.objects.filter(participant=participant)],
-        } for participant in Participant.objects.filter(room=room)]
+        'participants': dict([
+            (participant.user.uid.hex, {
+                'name': participant.name,
+                'balance': participant.balance,
+                'players': dict([
+                    (team_player.uid.hex, {
+                        'player_id': team_player.player.uid.hex,
+                        'price': team_player.price
+                    }) 
+                    for team_player in Team.objects.filter(participant=participant)
+                ])
+            }) for participant in Participant.objects.filter(room=room)
+        ])
     }
 
 
@@ -81,13 +86,12 @@ def is_player_allocated(room: Room):
 def get_room_data(user: User, room: Room):
     return {
         "uid": user.uid.hex,
-        "all_players": [{
-            'uid': player.uid.hex,
+        "all_players": dict([(player.uid.hex, {
             'name': player.name,
             'is_domestic': player.domestic,
             'score': player.score,
             'domain': player.domain
-        } for player in Player.objects.all()],
+        }) for player in Player.objects.all()]),
         "curr_player": room.curr_player.uid.hex if room.curr_player else None,
         **(get_auctioneer_room(room) if user.is_admin or user.is_auc else get_participant_room(user))
     }

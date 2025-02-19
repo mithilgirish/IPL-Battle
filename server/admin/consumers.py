@@ -12,10 +12,11 @@ class RoomConsumer(WebsocketConsumer):
         user = auth.get_user(dict(scope['headers']))
         room_uid = scope['url_route']['kwargs']['room_uid']
 
+        self.room_name = room_uid
+        
         if not user: return self.close(reason='Invalid user token')
         if not auth.validate_room(user, room_uid): return self.close(reason='User does not belong to this room!')
 
-        self.room_name = room_uid
         self.user = user
         self.room = Room.objects.get(uid=uuid.UUID(room_uid))
         async_to_sync(self.channel_layer.group_add)(self.room_name, self.channel_name)
