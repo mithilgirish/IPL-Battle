@@ -74,59 +74,20 @@
 
     "room": {
         "connect": {
-            "authorized": true,
             "url": "/room/room-uid/",
             "method": "WebSocket",
-            "response": {
-                "uid": "User UID",
-                "all_players": [{
-                    "object keys": "entry_id",
-                    "object values": {
-                        "name": "string",
-                        "is_domestic": "boolean",
-                        "score": "number",
-                        "domain": ["BA", "BO", "AR", "WK"],
-                        "price": "number"
-                    }
-                }],
-                "curr_player": "uid of player | null",
-
-                "if user is participant": {
-                    "name": "string",
-                    "balance": "number",
-                    "players": [{
-                        "object keys": "entry_id",
-                        "object values": {
-                            "player_id": "string",
-                            "price": "number"
-                        }
-                    }]
-                },
-
-                "if user is auctioneer or admin": {
-                    "participants": [{
-                        "object keys": "user uid",
-                        "object values": {
-                            "name": "string",
-                            "balance": "number",
-                            "players": [{
-                                "object keys": "entry_id",
-                                "object values": {
-                                    "player_id": "string",
-                                    "price": "number"
-                                }
-                            }]
-                        }
-                    }]
-                }
-            }
+            "response": null
         },
 
         "receive on server": {
-            "authorized": true,
             "url": "/room/room-uid/",
             "method": "WebSocket",
             "payload": {
+                "authorization required for receiving and sending": {
+                    "action": "AUTH",
+                    "token": "auth token"
+                },
+
                 "auctioneer or admin": {
                     "current player update": {
                         "action": "PLAYER",
@@ -144,6 +105,50 @@
                 }
             },
             "response": {
+                "authorization": {
+                    "uid": "User UID",
+                    "all_players": [{
+                        "object keys": "entry_id",
+                        "object values": {
+                            "name": "string",
+                            "is_domestic": "boolean",
+                            "score": "number",
+                            "domain": ["BA", "BO", "AR", "WK"],
+                            "price": "number"
+                        }
+                    }],
+                    "curr_player": "uid of player | null",
+    
+                    "if user is participant": {
+                        "name": "string",
+                        "balance": "number",
+                        "players": [{
+                            "object keys": "entry_id",
+                            "object values": {
+                                "player_id": "string",
+                                "price": "number"
+                            }
+                        }]
+                    },
+    
+                    "if user is auctioneer or admin": {
+                        "participants": [{
+                            "object keys": "user uid",
+                            "object values": {
+                                "name": "string",
+                                "balance": "number",
+                                "players": [{
+                                    "object keys": "entry_id",
+                                    "object values": {
+                                        "player_id": "string",
+                                        "price": "number"
+                                    }
+                                }]
+                            }
+                        }]
+                    }
+                },
+
                 "current player update": {
                     "type": "curr_player",
                     "player_uid": "uid of player"
