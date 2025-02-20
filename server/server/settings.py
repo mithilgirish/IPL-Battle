@@ -27,7 +27,7 @@ DEBUG = True
 import os
 from dotenv import load_dotenv
 
-load_dotenv('./.env' if DEBUG else None)
+load_dotenv('./.env')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ['SECURITY_KEY']
@@ -39,6 +39,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'daphne', 'channels',
+    'corsheaders',
 
     # 'django.contrib.admin',
     'django.contrib.auth',
@@ -51,7 +52,10 @@ INSTALLED_APPS = [
     'admin', 'auctioneer', 'participant'
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
