@@ -4,7 +4,7 @@ from .models import Room, Player, User
 
 import uuid
 
-def get_participant_room(user: User):
+def __get_participant_room(user: User):
     participant = Participant.objects.get(user=user)
     return {
         'name': participant.name,
@@ -19,7 +19,7 @@ def get_participant_room(user: User):
     }
 
 
-def get_auctioneer_room(room: Room):
+def __get_auctioneer_room(room: Room):
     return {
         'participants': dict([
             (participant.user.uid.hex, {
@@ -84,14 +84,24 @@ def is_player_allocated(room: Room):
 
 
 def get_room_data(user: User, room: Room):
+    players = Player.objects.all()
     return {
         "uid": user.uid.hex,
-        "all_players": dict([(player.uid.hex, {
-            'name': player.name,
-            'is_domestic': player.domestic,
-            'score': player.score,
-            'domain': player.domain
-        }) for player in Player.objects.all()]),
+        "all_players": dict([(players[i].uid.hex, {
+            'name': players[i].name,
+            'is_domestic': players[i].domestic,
+            'score': players[i].score,
+            'domain': players[i].domain,
+            'prev': None if i == 0 else players[i-1].uid.hex,
+            'next': None if i+1 == len(players) else players[i+1].uid.hex,
+        }) for i in range(len(players))]),
         "curr_player": room.curr_player.uid.hex if room.curr_player else None,
-        **(get_auctioneer_room(room) if user.is_admin or user.is_auc else get_participant_room(user))
+        **(__get_auctioneer_room(room) if user.is_admin or user.is_auc else __get_participant_room(user))
     }
+
+
+
+from django.db.models import Sum
+
+def get_leaderboard(room: Room):
+    return 
