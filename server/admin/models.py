@@ -38,7 +38,7 @@ class Player(models.Model):
 
     domain = models.CharField(max_length=2, choices=DomainChoice)
     base_price = models.IntegerField()
-
+    order = models.IntegerField(default=0)
 
 class Room(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, primary_key=True)
