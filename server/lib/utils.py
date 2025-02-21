@@ -21,5 +21,3 @@ def filter_data(data: str):
         for key in PAYLOAD[res['action']]: res[key]
         return True, res
     except: return False, { "valid": False, "message": "Invalid payload!" }
-
-
