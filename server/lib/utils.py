@@ -6,21 +6,20 @@ def get_fields(data, keys):
     return True, data
 
 
-from admin.models import User, Player, Room
-from participant.models import Participant
-from auctioneer.models import Auctioneer
+import json
 
-def create_test():
-    room = Room(name='Test Room')
-    room.save()
+def filter_data(data: str):
+    PAYLOAD = {
+        'AUTH': ['token'],
+        'PLAYER': ['pid'],
+        'TEAM': ['uid', 'amt'],
+        'REVERT': ['entry_id']
+    }
 
-    p = User(username='test', password='test')
-    p.save()
-    Participant(user=p, name='Test Participant', room=room).save()
+    try:
+        res = json.loads(data)
+        for key in PAYLOAD[res['action']]: res[key]
+        return True, res
+    except: return False, { "valid": False, "message": "Invalid payload!" }
 
-    auc = User(username='auc', password='test', is_auc=True)
-    auc.save()
-    Auctioneer(user=auc, room=room).save()
 
-    admin = User(username='admin', password='test', is_admin=True)
-    admin.save()

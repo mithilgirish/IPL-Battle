@@ -3,22 +3,20 @@ from admin.models import User, Room
 from participant.models import Participant
 from auctioneer.models import Auctioneer
 
-def get_user(headers: dict) -> User | None:
-    try:
-        token = headers[b'authorization'].split()[1].decode("utf-8")
-        return Token.objects.get(key=token).user
+def get_user(token: str) -> User | None:
+    try: return Token.objects.get(key=token).user
     except: return None
 
 
-def validate_room(user: User, room_uid: str) -> bool:
+def validate_room(user: User, room: Room) -> bool:
     if (user.is_admin): return True
 
     if (user.is_auc):
         auctioneer = Auctioneer.objects.get(user=user)
-        return auctioneer.room.uid.hex == room_uid
+        return auctioneer.room.uid.hex == room.uid.hex
     
     participant = Participant.objects.get(user=user)
-    return participant.room.uid.hex == room_uid
+    return participant.room.uid.hex == room.uid.hex
 
 
 def gen_token(username, password, is_auc=False, is_admin=False):

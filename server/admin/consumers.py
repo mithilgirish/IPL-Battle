@@ -3,45 +3,57 @@ from asgiref.sync import async_to_sync
 
 import json, uuid
 from . import logic
-from lib import auth
+from lib import auth, utils
 from .models import Room
 
 class RoomConsumer(WebsocketConsumer):
     def connect(self):
         scope = dict(self.scope)
-        user = auth.get_user(dict(scope['headers']))
         room_uid = scope['url_route']['kwargs']['room_uid']
-
-        self.room_name = room_uid
         
-        if not user: return self.close(reason='Invalid user token')
-        if not auth.validate_room(user, room_uid): return self.close(reason='User does not belong to this room!')
+        self.room_name = room_uid
 
-        self.user = user
-        self.room = Room.objects.get(uid=uuid.UUID(room_uid))
-        async_to_sync(self.channel_layer.group_add)(self.room_name, self.channel_name)
+        self.user = None
+        try: self.room = Room.objects.get(uid=uuid.UUID(room_uid))
+        except: return self.close(reason='Room not found')
 
         self.accept()
-        self.send(text_data=json.dumps(logic.get_room_data(self.user, self.room)))
+        
 
 
     def disconnect(self, code):
         async_to_sync(self.channel_layer.group_discard)(self.room_name, self.channel_name)
 
 
+
     def receive(self, text_data=None, bytes_data=None):
-        if not (self.user.is_admin or self.user.is_auc):
-            return self.send(text_data=json.dumps({'message': 'Participant can only listen for data'}))
+        valid, data = utils.filter_data(text_data)
+        if not valid: return self.send(text_data=json.dumps(data))
+
+        if data['action'] == 'AUTH':
+            user = auth.get_user(data['token'])
+
+            if not user: return self.close(reason='Invalid user token')
+            if not auth.validate_room(user, self.room): return self.close(reason='User does not belong to this room!')
+
+            self.user = user
+            async_to_sync(self.channel_layer.group_add)(self.room_name, self.channel_name)
+
+            return self.send(text_data=json.dumps(logic.get_room_data(self.user, self.room)))
+
         
-        data = None
-        data = json.loads(text_data)
+        if not self.user: return self.send(text_data="Not Authenticated!")    
+
+        if not (self.user.is_admin or self.user.is_auc):
+            return self.close(reason='Participant can only listen for data')
+        
         
         if data['action'] == 'PLAYER':
-            res = logic.update_curr_player(self.room, data['pid'])
-            async_to_sync(self.channel_layer.group_send)(
-                self.room_name, 
-                { 'type': 'player_update', 'data': { 'player_uid': res } }
-            )
+            async_to_sync(self.channel_layer.group_send)(self.room_name, { 
+                'type': 'player_update', 
+                'data': { 'player_uid': logic.update_curr_player(self.room, data['pid']) } 
+            })
+
 
         elif data['action'] == 'TEAM':
             res = logic.allocate_player(self.room, data['uid'], data['amt'])
@@ -51,14 +63,15 @@ class RoomConsumer(WebsocketConsumer):
                 )
             else: self.send(text_data=json.dumps(res))
 
-        elif data['action'] == 'REVERT':
-            res = logic.remove_entry(self.room, data['entry_id'])
-            async_to_sync(self.channel_layer.group_send)(
-                self.room_name, { 'type': 'player_revert', 'data': res }
-            )
 
         else:
-            self.close(reason='Invalid action')
+            async_to_sync(self.channel_layer.group_send)(self.room_name, 
+                { 
+                    'type': 'player_revert', 
+                    'data': logic.remove_entry(self.room, data['entry_id'])
+                }
+            )
+
 
 
     def player_update(self, event):
