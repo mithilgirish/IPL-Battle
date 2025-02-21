@@ -1,7 +1,7 @@
 import React from 'react';
 
-function AdminPage() {
-  const teams = Array.from({ length: 10 }, (_, i) => `Team ${i + 1}`);
+function Rooms() {
+  const teams = Array.from({ length: 10 }, (_, i) => `Room ${i + 1}`);
 
   return (
     <main className="pt-24 min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 relative overflow-hidden text-white py-12 px-4 sm:px-6 lg:px-8">
@@ -23,4 +23,4 @@ function AdminPage() {
   );
 }
 
-export default AdminPage;
+export default Rooms;

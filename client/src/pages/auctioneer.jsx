@@ -23,6 +23,16 @@ function AuctioneerPage() {
                 <ArrowRight className="w-6 h-6" />
               </button>
             </div>
+            <div className='mt-4 flex space-x-5'>
+              <input
+                type="number"
+                placeholder="Amount"
+                className="w-full bg-gray-800/60 rounded-lg py-2 pl-4 pr-10 backdrop-blur-sm border border-gray-700 focus:outline-none focus:border-orange-500 transition-colors"
+              />
+              <button className="p-2 bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors">
+                Allocate
+              </button>
+            </div>
           </div>
 
           {/* Team Details Section */}
