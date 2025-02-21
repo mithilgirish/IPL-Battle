@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, User, Lock, Gamepad2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Login = (props) => {
   const [username, setUsername] = useState('');
@@ -8,6 +9,8 @@ const Login = (props) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const [role, setRole] = useState(props.isAdmin ? 'admin' : props.isauc ? 'auctioneer' : 'participant');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,35 +18,46 @@ const Login = (props) => {
     setError('');
     console.log(username, password);
 
+    const role =
+      props.isAdmin ? 'admin' : props.isauc ? 'auctioneer' : 'participant';
+  
     try {
-      // Since only "participant" role is used, the URL is fixed.
-      const url = `https://ipl-battle.onrender.com/participant/login/`;
+      const url = `https://ipl-battle.onrender.com/${role}/login/`;
       console.log(url);
+  
       const response = await fetch(url, {
         method: 'POST',
-        mode: 'cors', // Enable CORS mode
+        mode: 'cors', 
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({ username, password }),
+        body: new URLSearchParams({ username, password }).toString(),
       });
-
+  
       const data = await response.json();
-
+      console.log(data);
+  
       if (!response.ok || !data.valid) {
         throw new Error(data.message || 'Login failed. Please check your credentials.');
       }
-
-      // Handle successful login
+  
       localStorage.setItem('token', data.token);
       if (data.room_uid) {
         localStorage.setItem('room_uid', data.room_uid);
       }
 
+      localStorage.setItem('login', 'true');
+      localStorage.setItem('Name', username);
+  
       console.log('Login successful:', data);
-      navigate(`/dashboard?role=participant`);
-
-
+      if (role === 'participant' || role === 'auctioneer') {
+        navigate(`/${role}/${data.room_uid}`);
+      }
+      else{
+        navigate(`/admin/dashboard`);
+      }
+      
+  
     } catch (error) {
       console.error('Login error:', error);
       setError(error.message);
@@ -51,6 +65,8 @@ const Login = (props) => {
       setLoading(false);
     }
   };
+  
+  
 
 
   return (
@@ -70,7 +86,7 @@ const Login = (props) => {
           </div>
           <CardTitle className="text-4xl font-bold text-center tracking-tighter">
             <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-              Participant Login
+              {role} Login
             </span>
           </CardTitle>
         </CardHeader>
@@ -142,7 +158,6 @@ const Login = (props) => {
         </CardContent>
       </Card>
 
-      {/* Floating particles */}
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(20)].map((_, i) => (
           <div
