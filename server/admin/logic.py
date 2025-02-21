@@ -84,7 +84,7 @@ def is_player_allocated(room: Room):
 
 
 def get_room_data(user: User, room: Room):
-    players = Player.objects.all()
+    players = Player.objects.all().order_by('order')
     return {
         "uid": user.uid.hex,
         "all_players": dict([(players[i].uid.hex, {

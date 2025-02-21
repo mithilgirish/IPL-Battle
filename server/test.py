@@ -36,11 +36,13 @@ def read_csv():
 
     with open('./data.csv') as f:
         reader = csv.DictReader(f)
+        order = 1
         for row in reader:
             Player(
                 name=row['\ufeffname'],
                 domestic=row['domestic'] == 'yes',
                 score=int(row['base_price']),
                 domain=choices[row['domain'].strip()],
-                base_price=int(row['base_price'])
+                base_price=int(row['base_price']),
+                order=order
             ).save()
