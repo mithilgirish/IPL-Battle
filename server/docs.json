@@ -116,7 +116,9 @@
                             "domain": ["BA", "BO", "AR", "WK"],
                             "price": "number",
                             "prev": "uid of previous player in order | null",
-                            "next": "uid of next player in order | null"
+                            "next": "uid of next player in order | null",
+                            "base_price": "minimum price",
+                            "order": "number"
                         }
                     }],
                     "curr_player": "uid of player | null",

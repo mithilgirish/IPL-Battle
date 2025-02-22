@@ -95,6 +95,8 @@ def get_room_data(user: User, room: Room):
             'domain': players[i].domain,
             'prev': None if i == 0 else players[i-1].uid.hex,
             'next': None if i+1 == len(players) else players[i+1].uid.hex,
+            'base_price': players[i].base_price,
+            'order': players[i].order
         }) for i in range(len(players))]),
         "curr_player": room.curr_player.uid.hex if room.curr_player else None,
         **(__get_auctioneer_room(room) if user.is_admin or user.is_auc else __get_participant_room(user))
