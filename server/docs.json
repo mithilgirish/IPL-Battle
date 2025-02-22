@@ -114,7 +114,9 @@
                             "is_domestic": "boolean",
                             "score": "number",
                             "domain": ["BA", "BO", "AR", "WK"],
-                            "price": "number"
+                            "price": "number",
+                            "prev": "uid of previous player in order | null",
+                            "next": "uid of next player in order | null"
                         }
                     }],
                     "curr_player": "uid of player | null",
