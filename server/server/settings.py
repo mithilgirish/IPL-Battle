@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 import os
@@ -80,8 +80,13 @@ AUTH_USER_MODEL = "admin.User"
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer'
-    }
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts":
+                [('red-cuspudlumphs73cas3j0:MUGY4O4Uy0oNc1SJgMkigtNVy9ihDn9j@singapore-keyvalue.render.com', 6379)] if DEBUG
+                else [('red-cuspudlumphs73cas3j0', 6379)]
+        },
+    },
 }
 
 TEMPLATES = [
