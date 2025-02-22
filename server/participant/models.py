@@ -8,7 +8,7 @@ class Participant(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, primary_key=True)
     user = models.OneToOneField(to=User, on_delete=models.CASCADE)
     name = models.CharField(max_length=30, null=False)
-    balance = models.FloatField(default=700000)
+    balance = models.FloatField(default=7000)
     room = models.ForeignKey(to=Room, on_delete=models.CASCADE)
 
 
