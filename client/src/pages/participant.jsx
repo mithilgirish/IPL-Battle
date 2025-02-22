@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom'; 
 
 function ParticipantsPage() {
   const [balance, setBalance] = useState(0);
-  const uid = useRef('')
+  const [uid, setUID] = useState('')
   const [players, setPlayers] = useState({});
   const [boughtPlayers, setBoughtPlayers] = useState({});
   const [name, setName] = useState("");
   const [currPlayer, setCurrPlayer] = useState(null);
-  const socketRef = useRef(null);
-  const playersRef = useRef({})
+  const [socket, setSocket] = useState(null);
 
   const params = useParams()
 
@@ -24,59 +23,71 @@ function ParticipantsPage() {
     }
 
     return () => {
-      if (socketRef.current) socketRef.current.close();
+      if (socket != null && socket.current) socket.current.close();
     };
   }, []);
 
+  useEffect(() => {
+      if (socket == null) return;
+    socket.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          console.log("Received message:", message);
+  
+          if (message.all_players !== undefined) {
+            setPlayers(message.all_players);
+            setBalance(message.balance);
+            setBoughtPlayers(message.players);
+            setName(message.name);
+            setUID(message.uid)
+  
+            setCurrPlayer(message.all_players[message.curr_player]);
+          }
+  
+          if (message.type === "curr_player") {
+            setCurrPlayer(players[message.player_uid]);
+          }
+  
+          if (message.type == "team_player" && uid == message.uid) {
+            const prevPlayers = structuredClone(boughtPlayers);
+            prevPlayers[message.entry_id] = {
+              "price": message.price,
+              "player_id": message.player
+            }
+            setBoughtPlayers(prevPlayers)
+            setBalance(message.balance)
+          }
+  
+          if (message.type == "revert_player" && uid == message.uid) {
+            setBoughtPlayers(prevPlayers => {
+              const newPlayers = { ...prevPlayers }
+              setBalance(balance + newPlayers[message.entry_id].price)
+              delete newPlayers[message.entry_id]
+              return newPlayers
+            })
+          }
+  
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error);
+        }
+    }
+  }, [
+    socket,
+    balance,
+    players,
+    boughtPlayers,
+    name,
+    currPlayer,
+    uid,
+  ])
+
   const connectWebSocket = (roomUid, authToken) => {
     const ws = new WebSocket(`wss://ipl-battle.onrender.com/room/${roomUid}/`);
-    socketRef.current = ws;
+    setSocket(ws);
 
     ws.onopen = () => {
       console.log("Connected to WebSocket");
       ws.send(JSON.stringify({ action: "AUTH", token: authToken }));
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        console.log("Received message:", message);
-
-        if (message.all_players !== undefined) {
-          setPlayers(message.all_players);
-          setBalance(message.balance);
-          setBoughtPlayers(message.players);
-          setName(message.name);
-          uid.current = message.uid
-          playersRef.current = message.all_players
-
-          setCurrPlayer(message.all_players[message.curr_player]);
-        }
-
-        if (message.type === "curr_player") {
-          setCurrPlayer(playersRef.current[message.player_uid]);
-        }
-
-        if (message.type == "team_player" && uid.current == message.uid) {
-          const prevPlayers = structuredClone(boughtPlayers);
-          prevPlayers[message.entry_id] = {
-            "price": message.price,
-            "player_id": message.player
-          }
-          setBoughtPlayers(prevPlayers)
-        }
-
-        if (message.type == "revert_player" && uid.current == message.uid) {
-          setBoughtPlayers(prevPlayers => {
-            const newPlayers = {...prevPlayers }
-            delete newPlayers[message.entry_id]
-            return newPlayers
-          })
-        }
-
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
-      }
     };
 
     ws.onclose = () => {
@@ -96,23 +107,17 @@ function ParticipantsPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold">Participants</h1>
           <div className="bg-gray-800/60 rounded-lg px-4 py-2 backdrop-blur-sm">
-            Available Balance: ₹{balance}
+            Available Balance: ₹{balance} L
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="flex flex-col items-center justify-center ">
           {/* Current Player */}
-          <div className="bg-gray-900/40 rounded-lg p-6 backdrop-blur-sm border border-gray-800">
-            <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
-              <p className="text-gray-600 text-center px-4">
-                {currPlayer ? `${currPlayer.name}` : "No active player auctioning"} <br />
-                {currPlayer ? `Domain: ${currPlayer.domain}` : ""} <br />
-                {currPlayer ? currPlayer.is_domestic ? "Domestic" : "Foreign" : ""} <br />
-                {currPlayer ? 'Score: ' + currPlayer.score : ""}
-              </p>
-            </div>
-          </div>
-
+          {currPlayer ?
+            <img src={`/cricketers/${currPlayer.order}.jpg`} className="w-full md:w-1/2 mb-5 rounded-md h-full object-cover mx-auto " alt="Current Player" />
+            : <></>
+          }
+  
           {/* List of Players Bought */}
           <div className="md:col-span-2 bg-gray-900/40 rounded-lg p-6 backdrop-blur-sm border border-gray-800">
             <h2 className="text-2xl font-semibold mb-4">List of players bought by {name}</h2>
@@ -128,32 +133,29 @@ function ParticipantsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {
-                    Object.keys(boughtPlayers ?? {}).map((player, index) => { 
-                      const playerDetails = players[boughtPlayers[player].player_id];
-                      console.log(boughtPlayers[player].player_id)
+                  {Object.keys(boughtPlayers ?? {}).map((player, index) => {
+                    const playerDetails = players[boughtPlayers[player].player_id];
 
-                      
-                      return (
-                        <tr key={player} className="border-b border-gray-800">
-                          <td className="py-3 px-4">{index + 1}</td>
-                          <td className="py-3 px-4">{playerDetails ? playerDetails.name : "Unknown"}</td>
-                          <td className="py-3 px-4">{playerDetails ? playerDetails.domain : "Unknown"}</td>
-                          <td className="py-3 px-4">
+                    return (
+                      <tr key={player} className="border-b border-gray-800">
+                        <td className="py-3 px-4">{index + 1}</td>
+                        <td className="py-3 px-4">{playerDetails ? playerDetails.name : "Unknown"}</td>
+                        <td className="py-3 px-4">{playerDetails ? playerDetails.domain : "Unknown"}</td>
+                        <td className="py-3 px-4">
                           {playerDetails ? (playerDetails.is_domestic ? "Domestic" : "International") : "Unknown"}
-                          </td>         
-                          <td className="py-3 px-4">₹{boughtPlayers[player].price}</td>
-                        </tr>
-                      );
-                    })
-                  }
+                        </td>
+                        <td className="py-3 px-4">₹{boughtPlayers[player].price} L</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
-
               </table>
             </div>
           </div>
         </div>
       </div>
+
+      
     </main>
   );
 }

@@ -48,6 +48,8 @@ const Login = (props) => {
 
       localStorage.setItem('login', 'true');
       localStorage.setItem('Name', username);
+      console.log(role)
+      localStorage.setItem('role', role);
   
       console.log('Login successful:', data);
       if (role === 'participant' || role === 'auctioneer') {

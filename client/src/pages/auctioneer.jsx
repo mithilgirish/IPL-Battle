@@ -12,10 +12,9 @@ import {
 import { useParams } from 'react-router-dom';
 
 function AuctioneerPage() {
-  const uid = useRef('');
   const [players, setPlayers] = useState({});
   const [currPlayer, setCurrPlayer] = useState(null);
-  const socketRef = useRef(null);
+  const [socket, setSocket] = useState(null)
   const [searchTerm, setSearchTerm] = useState("");
   const [participants, setParticipants] = useState({});
   const [next, setNext] = useState(null);
@@ -35,7 +34,7 @@ function AuctioneerPage() {
     }
 
     return () => {
-      if (socketRef.current) socketRef.current.close();
+      if (socket != null && socket) socket.close();
     };
   }, []);
 
@@ -47,34 +46,22 @@ function AuctioneerPage() {
     }
   }, [currPlayer, players]);
 
-  const connectWebSocket = (roomUid, authToken) => {
-    const ws = new WebSocket(`wss://ipl-battle.onrender.com/room/${roomUid}/`);
-    socketRef.current = ws;
 
-    ws.onopen = () => {
-      console.log("Connected to WebSocket");
-      ws.send(JSON.stringify({ action: "AUTH", token: authToken }));
-    };
-
-    ws.onmessage = (event) => {
+  useEffect(() => {
+    if (socket == null) return;
+    socket.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
         console.log("Received message:", message);
 
         if (message.all_players !== undefined) {
           setPlayers(message.all_players);
-          const currentPlayerData = message.all_players[message.curr_player];
-          setCurrPlayer(currentPlayerData);
+          setCurrPlayer(message.all_players[message.curr_player]);
           setParticipants(message.participants);
-          uid.current = message.uid;
         }
 
         if (message.type === "curr_player") {
-          setPlayers(prevPlayers => {
-            const newCurrPlayer = prevPlayers[message.player_uid];
-            setCurrPlayer(newCurrPlayer);
-            return prevPlayers;
-          });
+          setCurrPlayer(players[message.player_uid]);
         }
 
         if (message.type === "team_player") {
@@ -82,9 +69,6 @@ function AuctioneerPage() {
 
           setParticipants(prevParticipants => {
             const newParticipants = { ...prevParticipants };
-            if (!newParticipants[message.uid]) {
-              newParticipants[message.uid] = { players: {}, balance: 0 };
-            }
             newParticipants[message.uid].players[message.entry_id] = {
               price: message.price,
               player_id: message.player
@@ -101,13 +85,14 @@ function AuctioneerPage() {
           setParticipants(prevParticipants => {
             const newParticipants = { ...prevParticipants };
             const team = newParticipants[message.uid];
-            
-            if (team?.players?.[message.entry_id]) {
+
+            if (team.players[message.entry_id]) {
+              console.log(team.players)
               const removedPlayerPrice = team.players[message.entry_id].price;
               newParticipants[message.uid].balance += removedPlayerPrice;
-              
-              delete newParticipants[message.uid].players[message.entry_id];
             }
+                
+              delete newParticipants[message.uid].players[message.entry_id];
             return newParticipants;
           });
         }
@@ -116,11 +101,26 @@ function AuctioneerPage() {
         console.error("Error parsing WebSocket message:", error);
       }
     };
+  }, [
+    socket, 
+    participants,
+    currPlayer,
+    players
+  ])
+
+  const connectWebSocket = (roomUid, authToken) => {
+    const ws = new WebSocket(`wss://ipl-battle.onrender.com/room/${roomUid}/`);
+    setSocket(ws);
+
+    ws.onopen = () => {
+      console.log("Connected to WebSocket");
+      ws.send(JSON.stringify({ action: "AUTH", token: authToken }));
+    };
 
     ws.onclose = () => {
       console.log("WebSocket connection closed.");
       setTimeout(() => {
-        if (socketRef.current?.readyState === WebSocket.CLOSED) {
+        if (socket?.readyState === WebSocket.CLOSED) {
           connectWebSocket(roomUid, authToken);
         }
       }, 5000);
@@ -132,14 +132,15 @@ function AuctioneerPage() {
   };
 
   const changePlayer = (isNext) => {
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      console.log(socket)
       console.error("WebSocket is not connected");
       return;
     }
 
     const targetPid = isNext ? next : prev;
     if (targetPid) {
-      socketRef.current.send(JSON.stringify({ action: "PLAYER", pid: targetPid }));
+      socket.send(JSON.stringify({ action: "PLAYER", pid: targetPid }));
     }
   };
 
@@ -148,23 +149,23 @@ function AuctioneerPage() {
   };
 
   const handleRemovePlayer = (entry_id) => {
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
       console.error("WebSocket is not connected");
       return;
     }
 
-    socketRef.current.send(JSON.stringify({
+    socket.send(JSON.stringify({
       action: "REVERT",
       entry_id: entry_id,
     }));
   };
 
   const handleAllocatePlayer = () => {
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN || !currPlayer || !amount) {
+    if (!socket || socket.readyState !== WebSocket.OPEN || !currPlayer || !amount) {
       return;
     }
 
-    socketRef.current.send(JSON.stringify({
+    socket.send(JSON.stringify({
       action: "TEAM",
       uid: document.querySelector("input[name='curr_participant']:checked").value,
       amt: parseInt(amount),
@@ -182,17 +183,12 @@ function AuctioneerPage() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold mb-8">Auctioneer</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Player Image Section */}
-          <div className="bg-gray-900/40 rounded-lg p-6 backdrop-blur-sm border border-gray-800">
-            <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center mb-4">
-              <p className="text-gray-600 text-center px-4">
-                {currPlayer ? `${currPlayer.name}` : "No active player auctioning"} <br />
-                {currPlayer ? `Domain: ${currPlayer.domain}` : ""} <br />
-                {currPlayer ? currPlayer.is_domestic ? "Domestic" : "Foreign" : ""} <br />
-                {currPlayer ? 'Score: ' + currPlayer.score : ""}
-              </p>
-            </div>
+        <div className="flex flex-col items-center justify-center ">
+          {/* Current Player */}
+          { currPlayer ?
+            <img src={`/cricketers/${currPlayer.order}.jpg`} className="w-full md:w-2/3 mb-5 rounded-md h-full object-cover mx-auto " alt="Current Player" />
+            : <></>
+          }
             <div className="flex justify-center space-x-4">
               <button
                 disabled={!prev}
@@ -209,10 +205,10 @@ function AuctioneerPage() {
                 <ArrowRight className="w-6 h-6" />
               </button>
             </div>
-            <div className="mt-4 flex space-x-5">
+            <div className="mt-4 mb-6 flex space-x-5">
               <input
                 type="number"
-                placeholder="Amount"
+                placeholder="Amount (in Lakhs)"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className="w-full bg-gray-800/60 rounded-lg py-2 pl-4 pr-10 backdrop-blur-sm border border-gray-700 focus:outline-none focus:border-orange-500 transition-colors"
@@ -262,7 +258,7 @@ function AuctioneerPage() {
                           <div className="py-3 px-4 text-left"><input type="radio" name="curr_participant" value={uid} /></div>
                           <div className="py-3 px-4 text-left">{index + 1}</div>
                           <div className="py-3 px-4 text-left">{team.name}</div>
-                          <div className="py-3 px-4 text-left">₹{team.balance}</div>
+                          <div className="py-3 px-4 text-left">₹{team.balance} L</div>
                           <div className="py-3 px-4 text-left">{Object.keys(team.players || {}).length}</div>
                         </div>
                       </AccordionTrigger>
@@ -275,7 +271,7 @@ function AuctioneerPage() {
                                 <li key={playerId} className="flex justify-between items-center">
                                   <span>{players[playerData.player_id]?.name || "Unknown Player"}</span>
                                   <div className="flex items-center">
-                                    <span className="mr-4">₹{playerData.price}</span>
+                                    <span className="mr-4">₹{playerData.price} L</span>
                                     <button
                                       onClick={() => handleRemovePlayer(playerId)}
                                       className="p-1 hover:bg-red-600 rounded-full transition-colors"
@@ -303,7 +299,6 @@ function AuctioneerPage() {
             </div>
           </div>
         </div>
-      </div>
     </main>
   );
 }

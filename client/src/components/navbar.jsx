@@ -14,6 +14,7 @@ const Navbar = () => {
   const [userName, setUserName] = useState('');
 
   const room_uid = localStorage.getItem('room_uid');
+  const role = localStorage.getItem('role');
 
 
   // Sync with localStorage
@@ -56,6 +57,7 @@ const Navbar = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('Name');
     localStorage.removeItem('room_uid');
+    localStorage.removeItem('role');
     setIsLoggedIn(false);
     setUserName('');
     window.location.href = '/';
@@ -90,7 +92,13 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-8">
             <NavLink href="/">Home</NavLink>
             <NavLink href="/rules">Rules</NavLink>
-            <NavLink href={`/participant/${room_uid}`}>Dashboard</NavLink>
+
+            { (role === "auctioneer" || role === "participant") ? 
+    (<NavLink href={`/${role}/${room_uid}`}>Dashboard</NavLink>) : 
+    (<NavLink href={`/admin/dashboard`}>Dashboard</NavLink>)
+}
+
+            
             
             {isLoggedIn ? (
               <Popover>
@@ -150,7 +158,7 @@ const Navbar = () => {
           <div className="px-4 py-3 space-y-3">
             <MobileNavLink href="/">Home</MobileNavLink>
             <MobileNavLink href="/rules">Rules</MobileNavLink>
-            <MobileNavLink href="/dashboard">Dashboard</MobileNavLink>
+            <NavLink href={`/${role}/${room_uid}`}>Dashboard</NavLink>
             
             {isLoggedIn ? (
               <>
