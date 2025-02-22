@@ -46,3 +46,5 @@ def read_csv():
                 base_price=int(row['base_price']),
                 order=order
             ).save()
+
+            order += 1

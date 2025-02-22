@@ -34,7 +34,7 @@ def get_board(req, id):
                 'score': leaderboard['score'] 
             } for leaderboard in Team.objects.filter(participant__room=room)\
                 .values('participant__name').annotate(score=Sum('player__score'))\
-                .order_by('-score')
+                .order_by('-score', '-participant__balance')
         ]
     })
 
