@@ -28,10 +28,10 @@ import csv
 def read_csv():
 
     choices = {
-        'All-rounder': 'AR',
-        'Batsman': 'BA',
-        'Bowler': 'BO',
-        'Wicketkeeper': 'WK'
+        'ALL-ROUNDER': 'AR',
+        'BATSMAN': 'BA',
+        'BOWLER': 'BO',
+        'WICKETKEEPER': 'WK'
     }
 
     with open('./data.csv') as f:
@@ -39,12 +39,12 @@ def read_csv():
         order = 1
         for row in reader:
             Player(
-                name=row['\ufeffname'],
-                domestic=row['domestic'] == 'yes',
-                score=int(row['base_price']),
+                name=row['fname'] + ' ' + row['lname'],
+                domestic=row['domestic'] == 'Indian',
+                score=int(row['score']),
                 domain=choices[row['domain'].strip()],
                 base_price=int(row['base_price']),
                 order=order
             ).save()
-
+            print('Saved', order)
             order += 1
