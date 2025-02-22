@@ -50,6 +50,7 @@ def allocate_player(room: Room, participant_id: str, amt: int):
 
     if (participant.balance < amt): return { 'valid': False, 'message': 'Insufficient funds!' }
     if is_player_allocated(room): return { 'valid': False, 'message': 'Player already allocated!' }
+    if (amt < room.curr_player.base_price): return { 'valid': False, 'message': 'Amount should be above base price!' }
 
     participant.balance -= amt
     participant.save()
@@ -98,10 +99,3 @@ def get_room_data(user: User, room: Room):
         "curr_player": room.curr_player.uid.hex if room.curr_player else None,
         **(__get_auctioneer_room(room) if user.is_admin or user.is_auc else __get_participant_room(user))
     }
-
-
-
-from django.db.models import Sum
-
-def get_leaderboard(room: Room):
-    return 
