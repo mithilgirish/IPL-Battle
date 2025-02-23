@@ -46,6 +46,7 @@ def update_curr_player(room: Room, player_uid: str):
 
 
 def allocate_player(room: Room, participant_id: str, amt: int):
+    room.refresh_from_db()
     participant = Participant.objects.get(user__uid=uuid.UUID(participant_id), room=room)
 
     if (participant.balance < amt): return { 'valid': False, 'message': 'Insufficient funds!' }
