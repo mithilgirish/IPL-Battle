@@ -185,8 +185,11 @@ function AuctioneerPage() {
 
         <div className="flex flex-col items-center justify-center ">
           {/* Current Player */}
-          { currPlayer ?
-            <img src={`/cricketers/${currPlayer.order}.jpg`} className="w-full md:w-2/3 mb-5 rounded-md h-full object-cover mx-auto " alt="Current Player" />
+          {currPlayer ?
+            <>
+              <img src={`/cricketers/${currPlayer.order}.jpg`} className="w-full md:w-2/3 mb-5 rounded-md h-full object-cover mx-auto " alt="Current Player" />
+              <p className='text-center text-white text-4xl mb-4'>Base Price: { currPlayer.base_price }</p>
+            </>
             : <></>
           }
             <div className="flex justify-center space-x-4">
