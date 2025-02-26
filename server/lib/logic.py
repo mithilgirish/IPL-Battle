@@ -13,7 +13,7 @@ def __get_score(team: list[Team]):
         player = member.player
         counts[player.domain] += 1
         foreign += (not player.domestic)
-        score += player.score
+        score += player.score + (5 if player.score >= 45 else 0)
 
 
     if foreign > 7: return invalid('More than 7 foreign players')
