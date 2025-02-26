@@ -22,21 +22,13 @@ from django.db.models import Sum
 from django.http.response import JsonResponse
 import uuid
 
+from lib import logic
+
 def get_board(req, id):
     try: room = Room.objects.get(uid=uuid.UUID(id))
     except: return JsonResponse({ 'valid': False, 'message': 'Room not found!' })
 
-    return JsonResponse({ 
-        'valid': True,
-        'data': [
-            { 
-                'name': leaderboard['participant__name'], 
-                'score': leaderboard['score'] 
-            } for leaderboard in Team.objects.filter(participant__room=room)\
-                .values('participant__name').annotate(score=Sum('player__score'))\
-                .order_by('-score', '-participant__balance')
-        ]
-    })
+    return JsonResponse(logic.get_leaderboard(room))
 
 
 

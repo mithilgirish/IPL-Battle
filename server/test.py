@@ -1,31 +1,10 @@
 from admin.models import *
 from participant.models import *
 from auctioneer.models import *
-
-def create_models():
-    admin = User(username='admin', password='test', is_admin=True)
-    admin.save()
-
-    u1 = User(username='user1', password='test')
-    u1.save()
-    
-    u2 = User(username='user2', password='test')
-    u2.save()
-
-    auc = User(username='auc', password='test', is_auc=True)
-    auc.save()
-
-    room = Room(name='test')
-    room.save()
-
-    Participant(name='Test User 1', user=u1, room=room).save()
-    Participant(name='Test User 2', user=u2, room=room).save()
-
-    Auctioneer(user=auc, room=room).save()
-
-
 import csv
-def read_csv():
+
+
+def read_players():
 
     choices = {
         'ALL-ROUNDER': 'AR',
@@ -48,3 +27,44 @@ def read_csv():
             ).save()
             print('Saved', order)
             order += 1
+
+def read_auc():
+    player = Player.objects.get(order=1)
+    with open('./auc.csv') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            r = Room(name=row['room'], curr_player=player)
+            r.save()
+
+            u = User(
+                username=row['room'],
+                password=row['password'],
+                is_auc=True
+            )
+            u.save()
+
+            Auctioneer(user=u, room=r).save()
+
+
+def read_users():
+    rooms = Room.objects.all()
+    ct = 0
+
+    with open('./users.csv') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            u = User(
+                username=row['name'],
+                password=row['password']
+            )
+            u.save()
+
+            Participant(user=u, name=u.username, room=rooms[ct//10]).save()
+            ct += 1
+
+
+"""
+ADMIN CREDS:
+username = 'ipl-admin'
+password = 'auth_ipl@5.0'
+"""
