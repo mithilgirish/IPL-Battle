@@ -52,7 +52,6 @@ function AuctioneerPage() {
     socket.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log("Received message:", message);
 
         if (message.all_players !== undefined) {
           setPlayers(message.all_players);
@@ -87,7 +86,6 @@ function AuctioneerPage() {
             const team = newParticipants[message.uid];
 
             if (team.players[message.entry_id]) {
-              console.log(team.players)
               const removedPlayerPrice = team.players[message.entry_id].price;
               newParticipants[message.uid].balance += removedPlayerPrice;
             }
@@ -133,7 +131,6 @@ function AuctioneerPage() {
 
   const changePlayer = (isNext) => {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-      console.log(socket)
       console.error("WebSocket is not connected");
       return;
     }

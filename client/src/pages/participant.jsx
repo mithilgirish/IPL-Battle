@@ -32,7 +32,6 @@ function ParticipantsPage() {
     socket.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          console.log("Received message:", message);
   
           if (message.all_players !== undefined) {
             setPlayers(message.all_players);
