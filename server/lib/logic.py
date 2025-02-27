@@ -4,7 +4,7 @@ from admin.models import Room
 def __get_score(team: list[Team]):
     invalid = lambda msg: { 'score': -1, 'message': msg }
 
-    if not 16 >= len(team) >= 18:
+    if not 16 <= len(team) <= 18:
         return invalid('Invalid team size')
 
     counts = { 'BA': 0, 'BO': 0, 'AR': 0, 'WK': 0 }
